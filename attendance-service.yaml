@@ -1,0 +1,753 @@
+openapi: 3.0.3
+info:
+  title: Attendance Service API
+  description: |
+    Servicio de fichajes para gestión de proyectos de construcción.
+    Registro de entradas/salidas, cálculo de horas y gestión de incidencias de fichaje.
+  version: 1.0.0
+servers:
+  - url: /api/v1/attendance
+
+tags:
+  - name: Clock
+    description: Fichajes de entrada y salida
+  - name: Records
+    description: Consulta de registros de asistencia
+  - name: Incidents
+    description: Incidencias de fichaje
+  - name: Summary
+    description: Resúmenes y cálculos de horas
+
+paths:
+  /clock-in:
+    post:
+      tags: [Clock]
+      summary: Registrar entrada (fichaje)
+      operationId: clockIn
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClockInRequest'
+      responses:
+        '201':
+          description: Entrada registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Ya existe una entrada abierta sin salida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /clock-out:
+    post:
+      tags: [Clock]
+      summary: Registrar salida (fichaje)
+      operationId: clockOut
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClockOutRequest'
+      responses:
+        '200':
+          description: Salida registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No hay entrada abierta para este trabajador
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /records:
+    get:
+      tags: [Records]
+      summary: Listar registros de asistencia
+      operationId: listRecords
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: worker_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: team_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: company_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: date_from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [OPEN, CLOSED, INCIDENT]
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Lista paginada de registros
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAttendanceRecords'
+
+  /records/{recordId}:
+    parameters:
+      - $ref: '#/components/parameters/RecordIdParam'
+    get:
+      tags: [Records]
+      summary: Obtener registro de asistencia
+      operationId: getRecord
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Detalle del registro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceRecord'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Records]
+      summary: Corregir registro de asistencia (solo encargados/admin)
+      operationId: updateRecord
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecordRequest'
+      responses:
+        '200':
+          description: Registro actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceRecord'
+
+  /records/today:
+    get:
+      tags: [Records]
+      summary: Obtener registros del día actual
+      operationId: getTodayRecords
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: company_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Registros de hoy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodaySummary'
+
+  /incidents:
+    get:
+      tags: [Incidents]
+      summary: Listar incidencias de fichaje
+      operationId: listIncidents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, RESOLVED, REJECTED]
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Lista de incidencias
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedIncidents'
+    post:
+      tags: [Incidents]
+      summary: Reportar incidencia de fichaje
+      description: |
+        Permite reportar olvidos de fichaje, errores en hora, etc.
+      operationId: createIncident
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIncidentRequest'
+      responses:
+        '201':
+          description: Incidencia creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceIncident'
+
+  /incidents/{incidentId}:
+    parameters:
+      - name: incidentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Incidents]
+      summary: Obtener incidencia
+      operationId: getIncident
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Detalle de la incidencia
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceIncident'
+
+  /incidents/{incidentId}/resolve:
+    post:
+      tags: [Incidents]
+      summary: Resolver incidencia (aprobar o rechazar)
+      operationId: resolveIncident
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveIncidentRequest'
+      responses:
+        '200':
+          description: Incidencia resuelta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceIncident'
+
+  /summary/worker/{workerId}:
+    get:
+      tags: [Summary]
+      summary: Resumen de horas de un trabajador en un periodo
+      operationId: getWorkerSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: date_from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Resumen de horas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkerHoursSummary'
+
+  /summary/team/{teamId}:
+    get:
+      tags: [Summary]
+      summary: Resumen de horas por equipo
+      operationId: getTeamSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: date_from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Resumen de horas del equipo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamHoursSummary'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    RecordIdParam:
+      name: recordId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    ClockInRequest:
+      type: object
+      required: [worker_id, method]
+      properties:
+        worker_id:
+          type: string
+          format: uuid
+        method:
+          type: string
+          enum: [QR, NFC, MANUAL, GPS]
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        notes:
+          type: string
+
+    ClockOutRequest:
+      type: object
+      required: [worker_id, method]
+      properties:
+        worker_id:
+          type: string
+          format: uuid
+        method:
+          type: string
+          enum: [QR, NFC, MANUAL, GPS]
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        notes:
+          type: string
+
+    AttendanceRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        worker_id:
+          type: string
+          format: uuid
+        worker_name:
+          type: string
+        date:
+          type: string
+          format: date
+        clock_in:
+          type: string
+          format: date-time
+        clock_out:
+          type: string
+          format: date-time
+          nullable: true
+        clock_in_method:
+          type: string
+          enum: [QR, NFC, MANUAL, GPS]
+        clock_out_method:
+          type: string
+          enum: [QR, NFC, MANUAL, GPS]
+          nullable: true
+        clock_in_location:
+          $ref: '#/components/schemas/GeoLocation'
+        clock_out_location:
+          $ref: '#/components/schemas/GeoLocation'
+        total_hours:
+          type: number
+          format: double
+          nullable: true
+          description: Horas trabajadas calculadas
+        status:
+          type: string
+          enum: [OPEN, CLOSED, INCIDENT]
+        modified_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID del usuario que corrigió el registro
+        modification_reason:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    UpdateRecordRequest:
+      type: object
+      required: [reason]
+      properties:
+        clock_in:
+          type: string
+          format: date-time
+        clock_out:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          description: Motivo de la corrección
+
+    GeoLocation:
+      type: object
+      nullable: true
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+
+    TodaySummary:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        total_workers_present:
+          type: integer
+        total_workers_absent:
+          type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttendanceRecord'
+
+    AttendanceIncident:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        worker_id:
+          type: string
+          format: uuid
+        worker_name:
+          type: string
+        type:
+          type: string
+          enum:
+            - OLVIDO_ENTRADA
+            - OLVIDO_SALIDA
+            - CORRECCION_HORA
+            - FICHAJE_DUPLICADO
+            - OTRO
+        description:
+          type: string
+        affected_date:
+          type: string
+          format: date
+        proposed_clock_in:
+          type: string
+          format: date-time
+          nullable: true
+        proposed_clock_out:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [PENDING, RESOLVED, REJECTED]
+        resolution_notes:
+          type: string
+          nullable: true
+        resolved_by:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateIncidentRequest:
+      type: object
+      required: [worker_id, type, description, affected_date]
+      properties:
+        worker_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - OLVIDO_ENTRADA
+            - OLVIDO_SALIDA
+            - CORRECCION_HORA
+            - FICHAJE_DUPLICADO
+            - OTRO
+        description:
+          type: string
+        affected_date:
+          type: string
+          format: date
+        proposed_clock_in:
+          type: string
+          format: date-time
+        proposed_clock_out:
+          type: string
+          format: date-time
+
+    ResolveIncidentRequest:
+      type: object
+      required: [resolution]
+      properties:
+        resolution:
+          type: string
+          enum: [APPROVE, REJECT]
+        notes:
+          type: string
+
+    WorkerHoursSummary:
+      type: object
+      properties:
+        worker_id:
+          type: string
+          format: uuid
+        worker_name:
+          type: string
+        period_from:
+          type: string
+          format: date
+        period_to:
+          type: string
+          format: date
+        total_hours:
+          type: number
+          format: double
+        regular_hours:
+          type: number
+          format: double
+        overtime_hours:
+          type: number
+          format: double
+        days_worked:
+          type: integer
+        days_absent:
+          type: integer
+        pending_incidents:
+          type: integer
+        daily_breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              hours:
+                type: number
+                format: double
+              is_overtime:
+                type: boolean
+
+    TeamHoursSummary:
+      type: object
+      properties:
+        team_id:
+          type: string
+          format: uuid
+        team_name:
+          type: string
+        period_from:
+          type: string
+          format: date
+        period_to:
+          type: string
+          format: date
+        total_hours:
+          type: number
+          format: double
+        total_overtime_hours:
+          type: number
+          format: double
+        average_hours_per_worker:
+          type: number
+          format: double
+        workers_summary:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkerHoursSummary'
+
+    PaginatedAttendanceRecords:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttendanceRecord'
+        page:
+          type: integer
+        size:
+          type: integer
+        total_elements:
+          type: integer
+        total_pages:
+          type: integer
+
+    PaginatedIncidents:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttendanceIncident'
+        page:
+          type: integer
+        size:
+          type: integer
+        total_elements:
+          type: integer
+        total_pages:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+  responses:
+    BadRequest:
+      description: Petición inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: No autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

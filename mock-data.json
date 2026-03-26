@@ -1,0 +1,104 @@
+{
+  "users": [
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "external_id": "entra-001",
+      "email": "admin@acciona.com",
+      "first_name": "Carlos",
+      "last_name": "Martínez",
+      "role": "ADMIN"
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000002",
+      "external_id": "entra-002",
+      "email": "jefe@acciona.com",
+      "first_name": "Ana",
+      "last_name": "García",
+      "role": "JEFE_OBRA"
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000003",
+      "external_id": "entra-003",
+      "email": "encargado@acciona.com",
+      "first_name": "Miguel",
+      "last_name": "López",
+      "role": "ENCARGADO"
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000004",
+      "external_id": "entra-004",
+      "email": "trabajador@acciona.com",
+      "first_name": "Pedro",
+      "last_name": "Fernández",
+      "role": "TRABAJADOR"
+    }
+  ],
+  "companies": [
+    {
+      "id": "b1b2c3d4-0002-0002-0002-000000000001",
+      "cif": "A12345678",
+      "name": "Acciona Construcción",
+      "type": "PRINCIPAL"
+    },
+    {
+      "id": "b1b2c3d4-0002-0002-0002-000000000002",
+      "cif": "B87654321",
+      "name": "Electricidad Sur S.L.",
+      "type": "SUBCONTRATA"
+    }
+  ],
+  "teams": [
+    {
+      "id": "c1b2c3d4-0003-0003-0003-000000000001",
+      "name": "Cuadrilla Cimentación",
+      "leader_worker_id": "d1b2c3d4-0004-0004-0004-000000000001"
+    },
+    {
+      "id": "c1b2c3d4-0003-0003-0003-000000000002",
+      "name": "Cuadrilla Eléctrica",
+      "leader_worker_id": "d1b2c3d4-0004-0004-0004-000000000003"
+    }
+  ],
+  "workers": [
+    {
+      "id": "d1b2c3d4-0004-0004-0004-000000000001",
+      "document_type": "DNI",
+      "document_number": "12345678A",
+      "first_name": "Pedro",
+      "last_name": "Fernández",
+      "category": "ENCARGADO",
+      "company_id": "b1b2c3d4-0002-0002-0002-000000000001",
+      "team_id": "c1b2c3d4-0003-0003-0003-000000000001"
+    },
+    {
+      "id": "d1b2c3d4-0004-0004-0004-000000000002",
+      "document_type": "DNI",
+      "document_number": "23456789B",
+      "first_name": "María",
+      "last_name": "Ruiz",
+      "category": "OFICIAL_1",
+      "company_id": "b1b2c3d4-0002-0002-0002-000000000001",
+      "team_id": "c1b2c3d4-0003-0003-0003-000000000001"
+    },
+    {
+      "id": "d1b2c3d4-0004-0004-0004-000000000003",
+      "document_type": "NIE",
+      "document_number": "X1234567L",
+      "first_name": "Alexandru",
+      "last_name": "Popescu",
+      "category": "ELECTRICISTA",
+      "company_id": "b1b2c3d4-0002-0002-0002-000000000002",
+      "team_id": "c1b2c3d4-0003-0003-0003-000000000002"
+    },
+    {
+      "id": "d1b2c3d4-0004-0004-0004-000000000004",
+      "document_type": "DNI",
+      "document_number": "34567890C",
+      "first_name": "Lucía",
+      "last_name": "Sánchez",
+      "category": "PEON",
+      "company_id": "b1b2c3d4-0002-0002-0002-000000000001",
+      "team_id": "c1b2c3d4-0003-0003-0003-000000000001"
+    }
+  ]
+}
