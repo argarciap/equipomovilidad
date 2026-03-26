@@ -14,7 +14,7 @@ import { TAB_VISIBILITY, hasAccess } from '../utils/roles';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { ClockScreen } from '../screens/ClockScreen';
 import { RecordsScreen } from '../screens/RecordsScreen';
-import { IncidentsScreen } from '../screens/IncidentsScreen';
+import { IncidentsStackNavigator } from './IncidentsStackNavigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,7 +22,7 @@ const TAB_CONFIG = [
   { name: 'Dashboard', label: 'Inicio', icon: '🏠', component: DashboardScreen },
   { name: 'Clock', label: 'Fichaje', icon: '⏰', component: ClockScreen },
   { name: 'Records', label: 'Registros', icon: '📋', component: RecordsScreen },
-  { name: 'Incidents', label: 'Incidencias', icon: '⚠️', component: IncidentsScreen },
+  { name: 'Incidents', label: 'Incidencias', icon: '⚠️', component: IncidentsStackNavigator },
 ] as const;
 
 export function BottomTabs(): React.JSX.Element {
@@ -43,6 +43,7 @@ export function BottomTabs(): React.JSX.Element {
           options={{
             tabBarLabel: tab.label,
             tabBarIcon: () => <Text>{tab.icon}</Text>,
+            headerShown: tab.name !== 'Incidents',
           }}
         />
       ))}
