@@ -30,13 +30,13 @@ export class GPSServiceImpl implements GPSService {
   async getCurrentPosition(): Promise<GeoLocation> {
     return new Promise<GeoLocation>((resolve, reject) => {
       Geolocation.getCurrentPosition(
-        (position) => {
+        (position: any) => {
           resolve({
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           });
         },
-        (error) => {
+        (error: any) => {
           switch (error.code) {
             case 1:
               reject(new Error('Permisos de ubicación denegados. Activa los permisos en ajustes.'));

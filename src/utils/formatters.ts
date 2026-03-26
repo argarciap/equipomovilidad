@@ -54,3 +54,15 @@ const INCIDENT_STATUS_LABELS: Record<IncidentStatus, string> = {
 export function getIncidentStatusLabel(status: IncidentStatus): string {
   return INCIDENT_STATUS_LABELS[status] ?? status;
 }
+
+export function formatTime(isoDateTime: string): string {
+  try {
+    const date = new Date(isoDateTime);
+    if (isNaN(date.getTime())) return isoDateTime;
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  } catch {
+    return isoDateTime;
+  }
+}
