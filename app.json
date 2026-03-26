@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "equipo-movilidad",
+    "slug": "equipo-movilidad",
+    "version": "1.0.0",
+    "scheme": "construction",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}

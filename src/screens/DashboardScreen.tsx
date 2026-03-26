@@ -6,19 +6,22 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
 
 export function DashboardScreen() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Dashboard — Integrante 2</Text>
+      <Text style={styles.title}>Dashboard</Text>
       <Text style={styles.info}>
         Usuario: {user?.firstName} {user?.lastName}
       </Text>
       <Text style={styles.info}>Rol: {user?.role}</Text>
+      <TouchableOpacity style={styles.logoutButton} onPress={logout} accessibilityRole="button" accessibilityLabel="Cerrar sesión">
+        <Text style={styles.logoutText}>Cerrar sesión</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -38,5 +41,17 @@ const styles = StyleSheet.create({
   info: {
     fontSize: 16,
     marginBottom: 8,
+  },
+  logoutButton: {
+    marginTop: 24,
+    backgroundColor: '#DC2626',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+  },
+  logoutText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

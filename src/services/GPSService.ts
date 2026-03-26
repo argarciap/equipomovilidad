@@ -9,8 +9,18 @@
  */
 
 import type { GPSService, GeoLocation } from '../types/clock';
-import Geolocation from '@react-native-community/geolocation';
 import { Platform, PermissionsAndroid } from 'react-native';
+
+// @react-native-community/geolocation does not support web — lazy import
+let Geolocation: any = null;
+
+if (Platform.OS !== 'web') {
+  try {
+    Geolocation = require('@react-native-community/geolocation').default;
+  } catch {
+    // Module not available
+  }
+}
 
 export class GPSServiceImpl implements GPSService {
   /**

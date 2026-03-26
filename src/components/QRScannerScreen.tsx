@@ -16,13 +16,25 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
-import {
-  Camera,
-  useCameraDevice,
-  useCodeScanner,
-} from 'react-native-vision-camera';
 import { validateQRPayload } from '../services/AttendanceApiClient';
+
+// react-native-vision-camera does not support web — lazy import only on native
+let Camera: any = null;
+let useCameraDevice: any = () => null;
+let useCodeScanner: any = () => ({});
+
+if (Platform.OS !== 'web') {
+  try {
+    const visionCamera = require('react-native-vision-camera');
+    Camera = visionCamera.Camera;
+    useCameraDevice = visionCamera.useCameraDevice;
+    useCodeScanner = visionCamera.useCodeScanner;
+  } catch {
+    // Module not available — will show fallback UI
+  }
+}
 
 export interface QRScannerScreenProps {
   visible: boolean;
@@ -100,6 +112,22 @@ export function QRScannerScreen({
   };
 
   if (!visible) return null;
+
+  // Web fallback — camera not supported
+  if (Platform.OS === 'web') {
+    return (
+      <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+        <View style={styles.container}>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose} accessibilityLabel="Cerrar escáner QR" accessibilityRole="button">
+            <Text style={styles.closeText}>✕</Text>
+          </TouchableOpacity>
+          <View style={styles.centered}>
+            <Text style={styles.errorText}>El escáner QR no está disponible en web. Usa la app nativa en tu dispositivo.</Text>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal

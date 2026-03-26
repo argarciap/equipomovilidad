@@ -10,7 +10,23 @@
  */
 
 import type { NFCService } from '../types/clock';
-import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
+import { Platform } from 'react-native';
+
+// react-native-nfc-manager does not support web — lazy import only on native
+let NfcManager: any = null;
+let NfcTech: any = null;
+let Ndef: any = null;
+
+if (Platform.OS !== 'web') {
+  try {
+    const nfcModule = require('react-native-nfc-manager');
+    NfcManager = nfcModule.default;
+    NfcTech = nfcModule.NfcTech;
+    Ndef = nfcModule.Ndef;
+  } catch {
+    // Module not available
+  }
+}
 
 const NFC_READ_TIMEOUT_MS = 30_000;
 
