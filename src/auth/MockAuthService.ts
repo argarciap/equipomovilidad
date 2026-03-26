@@ -1,17 +1,10 @@
-/**
- * Mock implementation of AuthService.
- * Loads users from mock-data.json and persists auth state in AsyncStorage.
- *
- * Requisitos: 2.2, 2.3, 2.4, 2.6, 7.1, 7.3
- */
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { AuthService, User, UserRole } from '../types';
-import mockData from '../../mock-data.json';
+import type { AuthService, User, UserRole } from '@/types';
+import mockData from '@/data/mock-data.json';
 
 const AUTH_STORAGE_KEY = 'auth_user_id';
 
-interface MockUserRaw {
+interface RawMockUser {
   id: string;
   external_id: string;
   email: string;
@@ -20,7 +13,7 @@ interface MockUserRaw {
   role: string;
 }
 
-function toUser(raw: MockUserRaw): User {
+function mapRawUser(raw: RawMockUser): User {
   return {
     id: raw.id,
     email: raw.email,
@@ -30,21 +23,23 @@ function toUser(raw: MockUserRaw): User {
   };
 }
 
-const users: User[] = (mockData.users as MockUserRaw[]).map(toUser);
-
-/**
- * Returns all mock users available for the login screen.
- */
-export function getAvailableUsers(): User[] {
-  return users;
-}
-
 export class MockAuthService implements AuthService {
+  private users: User[];
+
+  constructor() {
+    this.users = (mockData.users as RawMockUser[]).map(mapRawUser);
+  }
+
   async login(userId: string): Promise<User> {
-    const user = users.find((u) => u.id === userId);
+    if (!userId || userId.trim() === '') {
+      throw new Error('El userId no puede estar vacío');
+    }
+
+    const user = this.users.find(u => u.id === userId);
     if (!user) {
       throw new Error('Usuario no encontrado');
     }
+
     await AsyncStorage.setItem(AUTH_STORAGE_KEY, userId);
     return user;
   }
@@ -58,6 +53,10 @@ export class MockAuthService implements AuthService {
     if (!userId) {
       return null;
     }
-    return users.find((u) => u.id === userId) ?? null;
+    return this.users.find(u => u.id === userId) ?? null;
+  }
+
+  getAvailableUsers(): User[] {
+    return this.users;
   }
 }

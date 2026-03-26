@@ -1,24 +1,16 @@
-/**
- * Application entry point.
- *
- * Wraps the component tree with AuthProvider (using MockAuthService)
- * and NavigationContainer (with deep link configuration).
- *
- * Requisitos: 2.1, 4.1, 4.8
- */
-
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { AuthProvider } from './auth/AuthProvider';
-import { MockAuthService } from './auth/MockAuthService';
-import { MainStack } from './navigation/MainStack';
-import { linking } from './navigation/linking';
+import { AuthProvider } from '@/auth/AuthProvider';
+import { MockAuthService } from '@/auth/MockAuthService';
+import { MainStack } from '@/navigation/MainStack';
+import { linking } from '@/navigation/linking';
 
-const authService = new MockAuthService();
+const mockAuthService = new MockAuthService();
+const availableUsers = mockAuthService.getAvailableUsers();
 
-export function App(): React.JSX.Element {
+export default function App(): React.JSX.Element {
   return (
-    <AuthProvider authService={authService}>
+    <AuthProvider authService={mockAuthService} availableUsers={availableUsers}>
       <NavigationContainer linking={linking}>
         <MainStack />
       </NavigationContainer>

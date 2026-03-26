@@ -1,52 +1,51 @@
-/**
- * Bottom tab navigator with role-based tab visibility.
- *
- * Tabs hidden for SOLO_LECTURA: Fichaje, Incidencias.
- *
- * Requisitos: 4.4, 6.1, 6.6
- */
-
 import React from 'react';
 import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useAuth } from '../auth/AuthContext';
-import { TAB_VISIBILITY, hasAccess } from '../utils/roles';
-import { DashboardScreen } from '../screens/DashboardScreen';
-import { ClockScreen } from '../screens/ClockScreen';
-import { RecordsScreen } from '../screens/RecordsScreen';
-import { IncidentsStackNavigator } from './IncidentsStackNavigator';
+import { useAuth } from '@/auth/AuthContext';
+import { hasAccess, TAB_VISIBILITY } from '@/utils/roles';
+import { DashboardScreen } from '@/screens/DashboardScreen';
+import { ClockScreen } from '@/screens/ClockScreen';
+import { RecordsScreen } from '@/screens/RecordsScreen';
+import { IncidentsStackNavigator } from '@/navigation/IncidentsStackNavigator';
 
 const Tab = createBottomTabNavigator();
 
-const TAB_CONFIG = [
-  { name: 'Dashboard', label: 'Inicio', icon: '🏠', component: DashboardScreen },
-  { name: 'Clock', label: 'Fichaje', icon: '⏰', component: ClockScreen },
-  { name: 'Records', label: 'Registros', icon: '📋', component: RecordsScreen },
-  { name: 'Incidents', label: 'Incidencias', icon: '⚠️', component: IncidentsStackNavigator },
-] as const;
+const TAB_ICONS: Record<string, string> = {
+  Dashboard: '🏠',
+  Clock: '⏰',
+  Records: '📋',
+  Incidents: '⚠️',
+};
+
+const TAB_LABELS: Record<string, string> = {
+  Dashboard: 'Inicio',
+  Clock: 'Fichaje',
+  Records: 'Registros',
+  Incidents: 'Incidencias',
+};
 
 export function BottomTabs(): React.JSX.Element {
   const { user } = useAuth();
-  const role = user?.role;
-
-  const visibleTabs = TAB_CONFIG.filter(
-    (tab) => role && hasAccess(role, TAB_VISIBILITY[tab.name] ?? [])
-  );
+  const role = user?.role ?? 'SOLO_LECTURA';
 
   return (
-    <Tab.Navigator screenOptions={{ headerShown: true }}>
-      {visibleTabs.map((tab) => (
-        <Tab.Screen
-          key={tab.name}
-          name={tab.name}
-          component={tab.component}
-          options={{
-            tabBarLabel: tab.label,
-            tabBarIcon: () => <Text>{tab.icon}</Text>,
-            headerShown: tab.name !== 'Incidents',
-          }}
-        />
-      ))}
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: () => (
+          <Text style={{ fontSize: 20 }}>{TAB_ICONS[route.name] ?? '📄'}</Text>
+        ),
+        tabBarLabel: TAB_LABELS[route.name] ?? route.name,
+        headerShown: route.name !== 'Incidents',
+      })}
+    >
+      <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      {hasAccess(role, TAB_VISIBILITY.Clock) && (
+        <Tab.Screen name="Clock" component={ClockScreen} />
+      )}
+      <Tab.Screen name="Records" component={RecordsScreen} />
+      {hasAccess(role, TAB_VISIBILITY.Incidents) && (
+        <Tab.Screen name="Incidents" component={IncidentsStackNavigator} />
+      )}
     </Tab.Navigator>
   );
 }

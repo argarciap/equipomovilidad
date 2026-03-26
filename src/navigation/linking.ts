@@ -1,16 +1,6 @@
-/**
- * Deep link configuration for React Navigation.
- *
- * Maps `construction://callback` to the Dashboard screen
- * inside the Main (BottomTabs) navigator. This prepares
- * the app for future Cognito OAuth redirect handling.
- *
- * Requisitos: 4.8
- */
+import { LinkingOptions } from '@react-navigation/native';
 
-import type { LinkingOptions } from '@react-navigation/native';
-
-export const linking: LinkingOptions<ReactNavigation.RootParamList> = {
+export const linking: LinkingOptions<Record<string, unknown>> = {
   prefixes: ['construction://'],
   config: {
     screens: {

@@ -1,0 +1,36 @@
+{
+  "users": [
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "external_id": "entra-001",
+      "email": "admin@acciona.com",
+      "first_name": "Carlos",
+      "last_name": "Martínez",
+      "role": "ADMIN"
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000002",
+      "external_id": "entra-002",
+      "email": "jefe@acciona.com",
+      "first_name": "Ana",
+      "last_name": "García",
+      "role": "JEFE_OBRA"
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000003",
+      "external_id": "entra-003",
+      "email": "encargado@acciona.com",
+      "first_name": "Miguel",
+      "last_name": "López",
+      "role": "ENCARGADO"
+    },
+    {
+      "id": "a1b2c3d4-0001-0001-0001-000000000004",
+      "external_id": "entra-004",
+      "email": "trabajador@acciona.com",
+      "first_name": "Pedro",
+      "last_name": "Fernández",
+      "role": "TRABAJADOR"
+    }
+  ]
+}

@@ -1,32 +1,34 @@
-/**
- * AuthProvider component that wraps the app and provides authentication state.
- * Receives an AuthService implementation as a prop (dependency inversion).
- *
- * Requisitos: 2.1, 2.3, 2.4, 2.5, 2.6, 7.3
- */
-
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import type { AuthService, User } from '../types';
-import { AuthContext, type AuthContextType } from './AuthContext';
-import { getAvailableUsers } from './MockAuthService';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import type { AuthService, User } from '@/types';
+import { AuthContext } from './AuthContext';
+import type { AuthContextValue } from './AuthContext';
 
 interface AuthProviderProps {
   authService: AuthService;
+  availableUsers: User[];
   children: React.ReactNode;
 }
 
-export function AuthProvider({ authService, children }: AuthProviderProps): React.JSX.Element {
+export function AuthProvider({
+  authService,
+  availableUsers,
+  children,
+}: AuthProviderProps): React.JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function restoreSession(): Promise<void> {
+    async function restoreSession() {
       try {
         const restored = await authService.getCurrentUser();
         if (!cancelled) {
           setUser(restored);
+        }
+      } catch {
+        if (!cancelled) {
+          setUser(null);
         }
       } finally {
         if (!cancelled) {
@@ -44,8 +46,8 @@ export function AuthProvider({ authService, children }: AuthProviderProps): Reac
 
   const login = useCallback(
     async (userId: string): Promise<void> => {
-      const loggedIn = await authService.login(userId);
-      setUser(loggedIn);
+      const loggedInUser = await authService.login(userId);
+      setUser(loggedInUser);
     },
     [authService],
   );
@@ -55,19 +57,19 @@ export function AuthProvider({ authService, children }: AuthProviderProps): Reac
     setUser(null);
   }, [authService]);
 
-  const availableUsers = useMemo(() => getAvailableUsers(), []);
-
-  const value: AuthContextType = useMemo(
+  const value: AuthContextValue = useMemo(
     () => ({
       user,
       isAuthenticated: user !== null,
       isLoading,
+      availableUsers,
       login,
       logout,
-      availableUsers,
     }),
-    [user, isLoading, login, logout, availableUsers],
+    [user, isLoading, availableUsers, login, logout],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  );
 }
